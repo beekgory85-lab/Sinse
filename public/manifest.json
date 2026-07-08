@@ -1,0 +1,31 @@
+{
+  "short_name": "مختبر العلوم",
+  "name": "مختبر العلوم الافتراضي - الصف السادس",
+  "description": "تطبيق محاكاة تفاعلية لتجارب العلوم المدرسية للصف السادس الابتدائي",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "display": "standalone",
+  "orientation": "any",
+  "dir": "rtl",
+  "lang": "ar"
+}
