@@ -81,6 +81,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onNavigate(tab, subTab);
   };
 
+  const [copied, setCopied] = useState<boolean>(false);
+  const shareUrl = "https://ais-pre-xxtbz7b2qc7puwzzdfyie4-278617215091.europe-west2.run.app";
+  const shareText = "🧪 تطبيق مختبر العلوم الافتراضي (الصف السادس الابتدائي 2026) - تجارب تفاعلية 3D لجميع وحدات الكتاب المدرسي! افتح التطبيق مباشرة من المتصفح وبدون أي تحميل:";
+  const shareMessage = `${shareText}\n${shareUrl}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareMessage).then(() => {
+      setCopied(true);
+      if (soundEnabled) soundEngine.playSuccess();
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      const textArea = document.createElement("textarea");
+      textArea.value = shareMessage;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setCopied(true);
+      if (soundEnabled) soundEngine.playSuccess();
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const shareOnWhatsApp = () => {
+    if (soundEnabled) soundEngine.playClick();
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const shareOnTelegram = () => {
+    if (soundEnabled) soundEngine.playClick();
+    const url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       
@@ -132,6 +167,73 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="text-xs font-mono font-bold text-slate-200">Interactive Lab</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Social Sharing Widget - Dynamic traffic generator */}
+      <div className="bg-slate-900/90 border border-cyan-800/40 rounded-2xl p-5 md:p-6 shadow-xl animate-fade-in relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+          <div className="text-right space-y-2">
+            <h2 className="text-lg font-bold text-slate-100 flex items-center justify-start gap-2">
+              <span className="text-xl">📢</span>
+              <span>انشر المختبر واجلب آلاف الزوار الحقيقيين!</span>
+            </h2>
+            <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
+              شارك هذا الرابط في مجموعات المعلمين، الطلاب، وأولياء الأمور على واتساب وتيليجرام. كلما دخل زوار أكثر، ارتفعت مشاهدات الإعلانات وأرباحك الحقيقية! 💰
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap items-center justify-center gap-3 w-full lg:w-auto shrink-0">
+            {/* WhatsApp Share */}
+            <button
+              onClick={shareOnWhatsApp}
+              className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all text-xs sm:text-sm shadow-lg shadow-emerald-900/20 w-full sm:w-auto justify-center"
+            >
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 2.221 4.704 2.222 5.4 0 9.791-4.391 9.795-9.793.002-2.618-1.015-5.08-2.859-6.927C16.444 2.809 13.987 1.79 11.373 1.79 5.976 1.79 1.588 6.176 1.585 11.574c-.001 1.944.505 3.84 1.468 5.457l-.989 3.613 3.716-.975c1.1.2 1.7.3 1.8 0z" />
+              </svg>
+              <span>مشاركة عبر واتساب</span>
+            </button>
+
+            {/* Telegram Share */}
+            <button
+              onClick={shareOnTelegram}
+              className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold transition-all text-xs sm:text-sm shadow-lg shadow-sky-900/20 w-full sm:w-auto justify-center"
+            >
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161l-1.875 8.835c-.141.625-.513.78-.141.25l-2.859-2.102-1.381 1.328c-.152.152-.28.28-.573.28l.205-2.915 5.306-4.793c.23-.205-.05-.319-.356-.115l-6.56 4.128-2.831-.885c-.615-.192-.628-.615.128-.91l11.07-4.264c.513-.192.961.115.768.91z" />
+              </svg>
+              <span>مشاركة عبر تيليجرام</span>
+            </button>
+
+            {/* Copy Link Button */}
+            <button
+              onClick={handleCopyLink}
+              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 transition-all text-xs sm:text-sm w-full sm:w-auto justify-center"
+            >
+              {copied ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 animate-bounce" />
+                  <span className="text-emerald-400">تم النسخ بنجاح!</span>
+                </>
+              ) : (
+                <>
+                  <ExternalLink className="w-4 h-4 text-cyan-400" />
+                  <span>نسخ الرابط المباشر</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Message Preview */}
+        <div className="mt-4 bg-slate-950/50 rounded-xl p-3.5 border border-slate-800 text-right">
+          <p className="text-[11px] text-slate-500 mb-1.5">نص الرسالة الترويجية الجاهزة للمشاركة:</p>
+          <p className="text-xs text-slate-300 font-sans leading-relaxed select-all">
+            {shareMessage}
+          </p>
         </div>
       </div>
 
