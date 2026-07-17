@@ -82,7 +82,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const [copied, setCopied] = useState<boolean>(false);
-  const shareUrl = "https://ais-pre-xxtbz7b2qc7puwzzdfyie4-278617215091.europe-west2.run.app";
+  const shareUrl = "https://since2026.online";
   const shareText = "🧪 تطبيق مختبر العلوم الافتراضي (الصف السادس الابتدائي 2026) - تجارب تفاعلية 3D لجميع وحدات الكتاب المدرسي! افتح التطبيق مباشرة من المتصفح وبدون أي تحميل:";
   const shareMessage = `${shareText}\n${shareUrl}`;
 
