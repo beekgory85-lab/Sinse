@@ -1,311 +1,133 @@
-import React, { useState, useEffect } from 'react';
-import { ActiveTab, LabNote, AppStats } from './types';
-import { Navbar } from './components/Navbar';
-import { Dashboard } from './components/Dashboard';
+import { useState } from 'react';
+import { UnitId, AppMode, Unit2SubView } from './types';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { HomeOverview } from './components/HomeOverview';
+import { TextbookViewer } from './components/TextbookViewer';
+import { Unit1CellBody } from './components/units/Unit1CellBody';
+import { Unit2EnergyMachines } from './components/units/Unit2EnergyMachines';
+import { Unit3MatterReactions } from './components/units/Unit3MatterReactions';
+import { Unit4HumanEarth } from './components/units/Unit4HumanEarth';
+import { QuizSection } from './components/QuizSection';
 import { MicroscopeSimulator } from './components/MicroscopeSimulator';
-import { CellOrganelles } from './components/CellOrganelles';
-import { PhysicsEnergy } from './components/PhysicsEnergy';
-import { ChemistryMatter } from './components/ChemistryMatter';
-import { EarthExperiments } from './components/EarthExperiments';
-import { QuizAndNotebook } from './components/QuizAndNotebook';
-import { AiAdvisorModal } from './components/AiAdvisorModal';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [physicsSubTab, setPhysicsSubTab] = useState<'catapult' | 'kinetic_potential' | 'gears_machines'>('catapult');
+  // Default to 'home' (الرئيسية والمشاهدات) matching Screenshot 4
+  const [currentMode, setCurrentMode] = useState<AppMode>('home');
+  const [unit2SubView, setUnit2SubView] = useState<Unit2SubView>('catapult');
+  const [score, setScore] = useState<number>(1455);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
-  // App Stats & Views Persistence (directly satisfies owner / view queries)
-  const [stats, setStats] = useState<AppStats>(() => {
-    const defaultStats: AppStats = {
-      totalViews: 1420,
-      totalExperimentsRun: 385,
-      totalQuizCompleted: 192,
-      totalNotesSaved: 48,
-      lastVisitedIso: new Date().toISOString(),
-      adClicks: 34,
-      adSimulationEnabled: false,
-      adsensePublisherId: 'ca-pub-3336377424012326',
-      adsenseAdSlotId: '',
-      isRealAdSenseEnabled: false
-    };
+  // Gentle scientific chime using Web Audio API
+  const playSound = () => {
+    if (!soundEnabled) return;
     try {
-      const saved = localStorage.getItem('science_lab_app_stats');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return { ...defaultStats, ...parsed };
-      }
+      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.12); // A5
+
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.22);
     } catch {
-      // Fallback
+      // AudioContext unavailable or blocked by autoplay policy
     }
-    return defaultStats;
-  });
-
-  // Dynamic Google AdSense script injection
-  useEffect(() => {
-    const pubId = stats.adsensePublisherId || 'ca-pub-3336377424012326';
-    
-    // Find any existing script tag for google adsense
-    const existingScripts = Array.from(document.querySelectorAll('script'));
-    const adsenseScript = existingScripts.find(s => s.src && s.src.includes('googlesyndication.com/pagead/js/adsbygoogle.js'));
-    
-    if (adsenseScript) {
-      // Re-create it with the new client ID to force re-evaluation
-      const currentClient = new URL(adsenseScript.src).searchParams.get('client');
-      if (currentClient !== pubId) {
-        adsenseScript.remove();
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`;
-        script.crossOrigin = "anonymous";
-        document.head.appendChild(script);
-      }
-    } else {
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`;
-      script.crossOrigin = "anonymous";
-      document.head.appendChild(script);
-    }
-  }, [stats.adsensePublisherId]);
-
-  // Lab Notes State
-  const [notes, setNotes] = useState<LabNote[]>(() => {
-    try {
-      const saved = localStorage.getItem('science_lab_notes');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // Fallback
-    }
-    return [
-      {
-        id: 'note_1',
-        title: 'فحص عينة خلايا بشرة البصل',
-        experimentName: 'محاكي المجهر المركب',
-        category: 'biology',
-        date: '2026-07-06',
-        hypothesis: 'اختبار وضوح الجدار الخلوي والنواة عند تكبير 10x و 40x.',
-        content: 'أظهرت عينة البصل خلايا نباتية متراصة بوضوح مع جدار خلوي سميك ونواة واضحة مع إضاءة 80%.',
-        conclusion: 'المجهر الضوئي يمنح دقة عالية للرؤية بوضوح عند تعديل الضابط الدقيق.'
-      }
-    ];
-  });
-
-  // Auto-increment page views on visit
-  useEffect(() => {
-    try {
-      const updated = {
-        ...stats,
-        totalViews: stats.totalViews + 1,
-        lastVisitedIso: new Date().toISOString()
-      };
-      setStats(updated);
-      localStorage.setItem('science_lab_app_stats', JSON.stringify(updated));
-    } catch {
-      // Storage fallback
-    }
-  }, []);
-
-  // Save changes to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('science_lab_app_stats', JSON.stringify(stats));
-    } catch {}
-  }, [stats]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('science_lab_notes', JSON.stringify(notes));
-    } catch {}
-  }, [notes]);
-
-  const handleIncrementViews = () => {
-    setStats(prev => ({
-      ...prev,
-      totalViews: prev.totalViews + 1
-    }));
   };
 
-  const handleIncrementAdClicks = () => {
-    setStats(prev => ({
-      ...prev,
-      adClicks: prev.adClicks + 1
-    }));
+  const handleEarnPoints = (pts: number) => {
+    setScore((prev) => prev + pts);
   };
 
-  const handleToggleAdSimulation = (enabled: boolean) => {
-    setStats(prev => ({
-      ...prev,
-      adSimulationEnabled: enabled
-    }));
-  };
-
-  const handleUpdateAdSenseSettings = (publisherId: string, adSlotId: string, isRealEnabled: boolean) => {
-    setStats(prev => ({
-      ...prev,
-      adsensePublisherId: publisherId,
-      adsenseAdSlotId: adSlotId,
-      isRealAdSenseEnabled: isRealEnabled
-    }));
-  };
-
-  const handleResetStats = () => {
-    setStats({
-      totalViews: 1,
-      totalExperimentsRun: 0,
-      totalQuizCompleted: 0,
-      totalNotesSaved: notes.length,
-      lastVisitedIso: new Date().toISOString(),
-      adClicks: 0,
-      adSimulationEnabled: false,
-      adsensePublisherId: stats.adsensePublisherId || 'ca-pub-3336377424012326',
-      adsenseAdSlotId: stats.adsenseAdSlotId || '',
-      isRealAdSenseEnabled: stats.isRealAdSenseEnabled || false
-    });
-  };
-
-  const handleRunExperiment = () => {
-    setStats(prev => ({
-      ...prev,
-      totalExperimentsRun: prev.totalExperimentsRun + 1
-    }));
-  };
-
-  const handleQuizCompleted = () => {
-    setStats(prev => ({
-      ...prev,
-      totalQuizCompleted: prev.totalQuizCompleted + 1
-    }));
-  };
-
-  const handleAddNote = (newNote: Omit<LabNote, 'id' | 'date'>) => {
-    const fullNote: LabNote = {
-      ...newNote,
-      id: 'note_' + Date.now(),
-      date: new Date().toISOString().split('T')[0]
-    };
-
-    setNotes(prev => [fullNote, ...prev]);
-    setStats(prev => ({
-      ...prev,
-      totalNotesSaved: prev.totalNotesSaved + 1
-    }));
-  };
-
-  const handleDeleteNote = (id: string) => {
-    setNotes(notes.filter(n => n.id !== id));
+  const handleOpenLabFromPage = (unitId: UnitId) => {
+    setCurrentMode(unitId);
+    playSound();
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-slate-950" dir="rtl">
-      
-      {/* Navbar Header */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+    <div className="min-h-screen bg-[#070d1e] text-slate-100 flex flex-col font-cairo selection:bg-cyan-500 selection:text-slate-950">
+      {/* Header matching original screenshots */}
+      <Header
+        currentMode={currentMode}
+        onSelectMode={(mode) => {
+          setCurrentMode(mode);
+          playSound();
+        }}
+        score={score}
         soundEnabled={soundEnabled}
-        setSoundEnabled={setSoundEnabled}
-        totalViews={stats.totalViews}
+        onToggleSound={() => setSoundEnabled(!soundEnabled)}
       />
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        
-        {activeTab === 'dashboard' && (
-          <Dashboard
-            stats={stats}
-            onNavigate={(tab, subTab) => {
-              setActiveTab(tab);
-              if (subTab) {
-                setPhysicsSubTab(subTab);
-              }
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-4 py-5 sm:py-6">
+        {/* Screen 1: Home Overview & Visuals (الرئيسية والمشاهدات - Screenshots 4, 3, 1) */}
+        {currentMode === 'home' && (
+          <HomeOverview
+            onSelectMode={(mode) => {
+              setCurrentMode(mode);
+              playSound();
             }}
-            onIncrementViews={handleIncrementViews}
-            onResetStats={handleResetStats}
-            onIncrementAdClicks={handleIncrementAdClicks}
-            onToggleAdSimulation={handleToggleAdSimulation}
-            onUpdateAdSenseSettings={handleUpdateAdSenseSettings}
-            soundEnabled={soundEnabled}
+            onSelectUnit2SubView={(subView) => {
+              setUnit2SubView(subView);
+            }}
+            playSound={playSound}
           />
         )}
 
-        {activeTab === 'microscope' && (
-          <MicroscopeSimulator
-            onSaveNote={handleAddNote}
-            onRunExperiment={handleRunExperiment}
-            soundEnabled={soundEnabled}
+        {/* Screen 1.5: Compound Microscope Simulator (محاكي المجهر المركب - Screenshots 15 & 16) */}
+        {currentMode === 'microscope' && (
+          <MicroscopeSimulator onEarnPoints={handleEarnPoints} playSound={playSound} />
+        )}
+
+        {/* Screen 2: Unit 1 Microscope & Cell Lab (الوحدة الأولى - الخلية والمجهر) */}
+        {currentMode === 'unit1' && (
+          <Unit1CellBody onEarnPoints={handleEarnPoints} playSound={playSound} />
+        )}
+
+        {/* Screen 3: Unit 2 Energy, Simple Machines & Gears (الوحدة الثانية - التروس والدارات) */}
+        {currentMode === 'unit2' && (
+          <Unit2EnergyMachines
+            initialSubView={unit2SubView}
+            onEarnPoints={handleEarnPoints}
+            playSound={playSound}
           />
         )}
 
-        {activeTab === 'cell_organelles' && (
-          <CellOrganelles
-            onSaveNote={handleAddNote}
-            onRunExperiment={handleRunExperiment}
-            soundEnabled={soundEnabled}
+        {/* Screen 4: Unit 3 Matter & Chemical Reactions (الوحدة الثالثة - تفاعلات المادة) */}
+        {currentMode === 'unit3' && (
+          <Unit3MatterReactions onEarnPoints={handleEarnPoints} playSound={playSound} />
+        )}
+
+        {/* Screen 5: Unit 4 Earth & Environment (الوحدة الرابعة - علوم الأرض والتجوية) */}
+        {currentMode === 'unit4' && (
+          <Unit4HumanEarth onEarnPoints={handleEarnPoints} playSound={playSound} />
+        )}
+
+        {/* Screen 6: Textbook Pages Viewer (صفحات الكتاب المقررة) */}
+        {currentMode === 'textbook' && (
+          <TextbookViewer
+            onOpenLab={handleOpenLabFromPage}
+            onEarnPoints={handleEarnPoints}
+            playSound={playSound}
           />
         )}
 
-        {activeTab === 'physics_energy' && (
-          <PhysicsEnergy
-            onSaveNote={handleAddNote}
-            onRunExperiment={handleRunExperiment}
-            soundEnabled={soundEnabled}
-            initialSubTab={physicsSubTab}
-          />
+        {/* Screen 7: Curriculum Quiz Bank (اختبار المنهج الوزاري) */}
+        {currentMode === 'quiz' && (
+          <QuizSection onEarnPoints={handleEarnPoints} playSound={playSound} />
         )}
-
-        {activeTab === 'chemistry_matter' && (
-          <ChemistryMatter
-            onSaveNote={handleAddNote}
-            onRunExperiment={handleRunExperiment}
-            soundEnabled={soundEnabled}
-          />
-        )}
-
-        {activeTab === 'earth_experiments' && (
-          <EarthExperiments
-            onSaveNote={handleAddNote}
-            onRunExperiment={handleRunExperiment}
-            soundEnabled={soundEnabled}
-          />
-        )}
-
-        {activeTab === 'quiz_notebook' && (
-          <QuizAndNotebook
-            notes={notes}
-            onAddNote={handleAddNote}
-            onDeleteNote={handleDeleteNote}
-            onQuizCompleted={handleQuizCompleted}
-            soundEnabled={soundEnabled}
-          />
-        )}
-
-        {activeTab === 'ai_advisor' && (
-          <AiAdvisorModal
-            soundEnabled={soundEnabled}
-          />
-        )}
-
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-900 py-6 mt-16 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="font-medium text-slate-400">
-            مختبر العلوم التفاعلي — Interactive Science Lab 🧪
-          </p>
-          <div className="flex items-center gap-2 text-slate-500 flex-wrap justify-center font-mono">
-            <span>محاكي المجهر 🔬</span>
-            <span>•</span>
-            <span>تفاعل الأحماض ⚛️</span>
-            <span>•</span>
-            <span>الطاقة الحركية ⚡</span>
-            <span>•</span>
-            <span>علوم الأرض 🌍</span>
-          </div>
-        </div>
-      </footer>
-
+      {/* Clean Footer matching original app */}
+      <Footer />
     </div>
   );
 }
