@@ -1,6 +1,6 @@
 import React from 'react';
-import { FlaskConical, Sparkles, Zap, Atom, Globe, Volume2, VolumeX, BookOpen, Trophy, LayoutDashboard } from 'lucide-react';
-import { UnitId, AppMode } from '../types';
+import { FlaskConical, Sparkles, Zap, Atom, Globe, Volume2, VolumeX, Trophy, LayoutDashboard } from 'lucide-react';
+import { AppMode } from '../types';
 import { unitsList } from '../data/curriculumUnits';
 
 interface HeaderProps {
@@ -68,17 +68,6 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
             <span>الرئيسية والمشاهدات</span>
-          </button>
-          <button
-            onClick={() => onSelectMode('textbook')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition ${
-              currentMode === 'textbook'
-                ? 'bg-cyan-600 text-white shadow-md'
-                : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>صفحات الكتاب</span>
           </button>
           <button
             onClick={() => onSelectMode('quiz')}
@@ -168,19 +157,6 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             );
           })}
-
-          {/* Textbook Pages Tab */}
-          <button
-            onClick={() => onSelectMode('textbook')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 border ${
-              currentMode === 'textbook'
-                ? 'bg-cyan-600 border-cyan-300 text-white shadow-md'
-                : 'bg-[#0d162f] hover:bg-[#121f42] border-transparent text-slate-300 hover:text-white'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>صفحات الكتاب</span>
-          </button>
 
           {/* Quiz Tab */}
           <button

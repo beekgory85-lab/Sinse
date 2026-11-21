@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { UnitId, AppMode, Unit2SubView } from './types';
+import { AppMode, Unit2SubView } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeOverview } from './components/HomeOverview';
-import { TextbookViewer } from './components/TextbookViewer';
 import { Unit1CellBody } from './components/units/Unit1CellBody';
 import { Unit2EnergyMachines } from './components/units/Unit2EnergyMachines';
 import { Unit3MatterReactions } from './components/units/Unit3MatterReactions';
 import { Unit4HumanEarth } from './components/units/Unit4HumanEarth';
 import { QuizSection } from './components/QuizSection';
 import { MicroscopeSimulator } from './components/MicroscopeSimulator';
+import { StudentAnnouncements } from './components/StudentAnnouncements';
+import { AdsterraBanner } from './components/AdsterraBanner';
 
 export function App() {
   // Default to 'home' (الرئيسية والمشاهدات) matching Screenshot 4
@@ -47,11 +48,6 @@ export function App() {
     setScore((prev) => prev + pts);
   };
 
-  const handleOpenLabFromPage = (unitId: UnitId) => {
-    setCurrentMode(unitId);
-    playSound();
-  };
-
   return (
     <div className="min-h-screen bg-[#070d1e] text-slate-100 flex flex-col font-cairo selection:bg-cyan-500 selection:text-slate-950">
       {/* Header matching original screenshots */}
@@ -68,6 +64,15 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-4 py-5 sm:py-6">
+        {/* Educational Announcements for Students */}
+        <StudentAnnouncements
+          onSelectMode={(mode) => {
+            setCurrentMode(mode);
+            playSound();
+          }}
+          playSound={playSound}
+        />
+
         {/* Screen 1: Home Overview & Visuals (الرئيسية والمشاهدات - Screenshots 4, 3, 1) */}
         {currentMode === 'home' && (
           <HomeOverview
@@ -111,19 +116,13 @@ export function App() {
           <Unit4HumanEarth onEarnPoints={handleEarnPoints} playSound={playSound} />
         )}
 
-        {/* Screen 6: Textbook Pages Viewer (صفحات الكتاب المقررة) */}
-        {currentMode === 'textbook' && (
-          <TextbookViewer
-            onOpenLab={handleOpenLabFromPage}
-            onEarnPoints={handleEarnPoints}
-            playSound={playSound}
-          />
-        )}
-
-        {/* Screen 7: Curriculum Quiz Bank (اختبار المنهج الوزاري) */}
+        {/* Screen 6: Curriculum Quiz Bank (اختبار المنهج الوزاري) */}
         {currentMode === 'quiz' && (
           <QuizSection onEarnPoints={handleEarnPoints} playSound={playSound} />
         )}
+
+        {/* Real Adsterra Ad Unit Slot (renders when configured via VITE_ADSTERRA_* env vars) */}
+        <AdsterraBanner />
       </main>
 
       {/* Clean Footer matching original app */}

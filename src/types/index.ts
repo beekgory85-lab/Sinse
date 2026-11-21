@@ -1,5 +1,5 @@
 export type UnitId = 'unit1' | 'unit2' | 'unit3' | 'unit4';
-export type AppMode = 'home' | 'microscope' | 'unit1' | 'unit2' | 'unit3' | 'unit4' | 'textbook' | 'quiz';
+export type AppMode = 'home' | 'microscope' | 'unit1' | 'unit2' | 'unit3' | 'unit4' | 'quiz';
 export type Unit2SubView = 'catapult' | 'kinetic' | 'gears';
 
 export interface UnitInfo {
